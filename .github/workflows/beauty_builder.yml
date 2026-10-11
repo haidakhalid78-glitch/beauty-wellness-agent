@@ -1,0 +1,34 @@
+name: Beauty Website Builder Agent
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: # Permette di avviarlo manualmente da GitHub
+
+jobs:
+  build-and-notify:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Esegui Agente Creatore Sito
+      env:
+        MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+        MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+      run: |
+        python agent_beauty.py
+
+    - name: Commit e Push del sito generato
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add index.html
+        git commit -m "Auto-generazione sito Bellezza & Benessere" || exit 0
+        git push
