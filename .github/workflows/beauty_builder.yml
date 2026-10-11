@@ -2,33 +2,37 @@ name: Beauty Website Builder Agent
 
 on:
   push:
-    branches: [ "main" ]
-  workflow_dispatch: # Permette di avviarlo manualmente da GitHub
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build-and-notify:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
-    - name: Esegui Agente Creatore Sito
-      env:
-        MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-        MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-      run: |
-        python agent_beauty.py
+      - name: Esegui Agente Creatore Sito
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          # Inserisci qui il comando o lo script python che genera l'index.html
+          python agent.py
 
-    - name: Commit e Push del sito generato
-      run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add index.html
-        git commit -m "Auto-generazione sito Bellezza & Benessere" || exit 0
-        git push
+      - name: Commit e Push del sito generato
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m "Auto-generazione sito Bellezza & Benessere" || echo "No changes to commit"
+          git pull origin main --rebase
+          git push origin main
